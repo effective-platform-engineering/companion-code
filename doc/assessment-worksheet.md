@@ -1,6 +1,6 @@
-# Software Selection Criteria Assessment
+# Example: Software Selection Criteria Assessment
 
-Assessment example: [Buildkite](https://buildkite.com)
+Tool: [Buildkite](https://buildkite.com)  
 Category: Pipeline Orchestration
 
 ## General Software Selection Criteria
@@ -12,18 +12,15 @@ Discussion: Buildkite does offer additional capabilities beyond pipelines, namel
 
 3. [X] Prefer solutions offered by qualified SaaS providers over self-managed, performing realistic assessments of the total cost of ownership. Always qualify a SaaS tool with actual POC implementations and security assessments.  
 
-Discussion: Founded 2013 in Melbourne, Aus. Industry security on SaaS hosted data. Pipeline execution is 100% private-hosted runners (user retains fuill security control over actual pipeline jobs), though vendor hoested runners is in private Trials.   
-
-[Market info](https://www.prnewswire.com/news-releases/buildkite-raises-21-million-to-invent-the-future-of-devops-301677746.html).  
+Discussion: Founded 2013 in Melbourne, Aus. Industry security on SaaS hosted data. Pipeline execution has historically been 100% private-hosted runners (user retains fuill security control over actual pipeline jobs), though vendor hosted runners is in private Trials. 1000+ customers including notables. [Market info](https://www.prnewswire.com/news-releases/buildkite-raises-21-million-to-invent-the-future-of-devops-301677746.html).  
 
 4. [X] Use or implement software that has an API.  
 
 [Documentation](https://buildkite.com/docs/apis). REST and GraphQL.  
 
-5. [-] The API should be easy to use, and the related documentation should include functional examples.  
+5. [X] The API should be easy to use, and the related documentation should include functional examples.  
 
 Discussion: functional examples are Curl only. Provides explorer for GraphQL interface.  
-
 
 6. [-] The API should provide access to all application functionality, including the generation and rotation of internal secrets or certificates if used.  
 
@@ -33,15 +30,15 @@ Discussion: Certain capabilities are limited to Enterprise plan.
 
 8. [-] Coding around deficiencies in the product should be easier than recreating the product.  
 
-Discussion: For platform capability purposes, team management appears sufficient. Options/examples exist for providing dynhamic, ephmeral runners. Need to setup secure access to live runners.  
+Discussion: For platform capability purposes, team management appears sufficient. Options/examples exist for providing dynamic, ephmeral runners. Initial identified list of things that may require custom automation is short and doable at modest investment.  
 
 9. [X] All data stored in the product should be readable and writable by other applications.  
 
-Discussion: In testing don't see particualr examples of unavailable data.  
+Discussion: In testing don't see particular examples of unavailable data.  
 
 10. [X] Products with authentication requirements should be able to authenticate and authorize users from external, configurable sources using frameworks appropriate for public networks. In particular, assess whether the tool can be configured to align with the platform’s team-oriented RBAC goals of enabling complete self-serve user experiences.  
 
-Discussion. SAML available. Also, good GitHub Teams integration (if using that for producg experience).  
+Discussion. SAML available. Also, good GitHub Teams integration (if using that for customer rbac experience).  
 
 11. [-] Place a high value on the depth of community involvement and support.  
 
@@ -76,4 +73,4 @@ Discussion. Not currently part of Agent features, though in private-hosted setti
 
 8. [ ] No or highly limited means of pipeline creation or maintenance via a GUI.  
 
-Discussion: Though it is not the recommended method, it is possible to define at least a braod category of pipeline capabilities through the UI by entering the YAML structure directly. Not quite highly limited. It is possible to create aome automation to scasn for and discourage the behavior.  
+Discussion: Though it is not the recommended method, it is possible to define a broad category of pipeline capabilities through the UI by entering the YAML structure directly. Not quite _highly limited_. It is possible to create  automation to scan for and discourage the behavior.  
