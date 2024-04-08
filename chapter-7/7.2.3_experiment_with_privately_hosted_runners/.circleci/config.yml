@@ -1,0 +1,15 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: twdps/circleci-base-image:alpine-stable
+    resource_class: twdps/experiment
+    steps:
+      - checkout
+      - run: echo "Hi I'm on Runners!"
+
+workflows:
+  build-workflow:
+    jobs:
+      - build
