@@ -2,7 +2,7 @@
 
 ### Chapter 7
 
-7.2 [Footnote 3](chapter-7/configuring_github_for_signed_commits.md).  
+Section 7.2 [Footnote 3](chapter-7/configuring_github_for_signed_commits.md).  
 
 Exercise 7.1: [Assess a developer tool](chapter-7/7.2.2_assess_a_tool_in_one_of_the_categories_against_the_criteria/assessment-worksheet.md) a tool in one of the categories against the criteria  
 
