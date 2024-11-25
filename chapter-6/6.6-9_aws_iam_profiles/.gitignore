@@ -1,4 +1,4 @@
-.DS_Store
+
 .terraform*
 .external_modules
 source_aws_local.env
@@ -7,7 +7,6 @@ machine_credentials.*
 .ruby-version
 .python-version
 credentials
-.DS_Store
 source.env
 .venv
 temp.yaml

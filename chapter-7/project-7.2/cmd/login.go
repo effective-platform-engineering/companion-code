@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/ThoughtWorks-DPS/vsctl/clients"
-	"github.com/ThoughtWorks-DPS/vsctl/clients/models"
+	"github.com/vitalsigns/vsctl/clients"
+	"github.com/vitalsigns/vsctl/clients/models"
 	"errors"
 	"fmt"
 	"log"

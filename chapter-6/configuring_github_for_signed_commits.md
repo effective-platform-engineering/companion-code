@@ -21,17 +21,17 @@ $ keybase pgp gen --multi
 # If your gpg is running local then you should see the following
 
 Enter your real name, which will be publicly visible in your new key: Jane Doe
-Enter a public email address for your key: jdoe@thoughtworks.com
+Enter a public email address for your key: jdoe@example.com
 Enter another email address (or <enter> when done): jane.doe@gmail.com
 Enter another email address (or <enter> when done):
 Push an encrypted copy of your new secret key to the Keybase.io server? [Y/n] Y
 When exporting to the GnuPG keychain, encrypt private keys with a passphrase? [Y/n] Y
-▶ INFO PGP User ID: Jane Doe <jdoe@thoughtworks.com> [primary]
+▶ INFO PGP User ID: Jane Doe <jdoe@example.com> [primary]
 ▶ INFO PGP User ID: Jane Doe <jane.doe@gmail.com>
 ▶ INFO Generating primary key (4096 bits)
 ▶ INFO Generating encryption subkey (4096 bits)
 ▶ INFO Generated new PGP key:
-▶ INFO   user: Jane Doe <jdoe@thoughtworks.com>
+▶ INFO   user: Jane Doe <jdoe@example.com>
 ▶ INFO   4096-bit RSA key, ID 5BE03B7DE63C0271, created 2020-05-25
 ▶ INFO Exported new key to the local GPG keychain
 ```
@@ -44,7 +44,7 @@ $ gpg --list-secret-keys --keyid-format LONG
 ------------------------------------
 sec   rsa4096/A8E47CAE38308EC9 2020-05-25 [SC] [expires: 2036-05-21]
       7703E0D1ECF17C64C6B09DDFA8E47CAE38308EC9
-uid                 [ unknown] Jane Doe <jdoe@thoughtworks.com>
+uid                 [ unknown] Jane Doe <jdoe@example.com>
 uid                 [ unknown] Jane Doe <njane.doe@gmail.com>
 ```
 
@@ -155,7 +155,7 @@ Edit your ~/.gitconfig file
  ~/.gitconfig-default  
  ```bash
  [user]
-	   email = jdoe@thoughtworks.com
+	   email = jdoe@example.com
 	   signingkey = 5BE03B7DE63C0271
  ```
  

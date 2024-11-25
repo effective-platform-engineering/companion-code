@@ -2,7 +2,7 @@
 
 ### Chapter 6
 
-[Configuring GitHub for signed commits](chapter-6/configuring_github_for_signed_commits).  
+[Configuring GitHub for signed commits](chapter-6/configuring_github_for_signed_commits.md).  
 
 [Exercise 6.1](chapter-6/6.1_developer_tools_selection_criteria) Developer Tool Selection Criteria  
 
