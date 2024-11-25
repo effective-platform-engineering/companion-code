@@ -1,0 +1,4 @@
+agent:
+  resourceClasses:
+    vitalsigns/experiment:
+      token: {{ op://my-vault/svc-circleci/private-runner-token-for-example-repo }}

@@ -1,0 +1,8 @@
+.venv
+.python*
+.ruby*
+requirements*
+source.env
+*.auto.tfvars.json
+.terraform*
+kubeconfig

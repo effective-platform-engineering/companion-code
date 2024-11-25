@@ -1,0 +1,13 @@
+.DS_Store
+.terraform*
+.external_modules
+source_aws_local.env
+machine_credentials.*
+*.auto.tfvars.json
+.ruby-version
+.python-version
+credentials
+.DS_Store
+source.env
+.venv
+temp.yaml

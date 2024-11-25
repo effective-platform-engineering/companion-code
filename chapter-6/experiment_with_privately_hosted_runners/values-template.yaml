@@ -1,4 +1,0 @@
-agent:
-  resourceClasses:
-    twdps/experiment:
-      token: {{ op://empc-lab/svc-circleci/private-runner-token-for-example-repo }}

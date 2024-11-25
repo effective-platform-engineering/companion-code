@@ -1,0 +1,64 @@
+require 'awspec'
+
+describe iam_role('PlatformHostedZonesRole') do
+  it { should exist }
+  it { should have_iam_policy('PlatformHostedZonesRolePolicy') }
+  
+  it { should be_allowed_action('route53:AcceptDomainTransferFromAnotherAwsAccount') }
+  it { should be_allowed_action('route53:AssociateVPCWithHostedZone') }
+  it { should be_allowed_action('route53:CancelDomainTransferToAnotherAwsAccount') }
+  it { should be_allowed_action('route53:ChangeCidrCollection') }
+  it { should be_allowed_action('route53:ChangeResourceRecordSets') }
+  it { should be_allowed_action('route53:ChangeTagsForResource') }
+  it { should be_allowed_action('route53:CreateCidrCollection') }
+  it { should be_allowed_action('route53:CreateHealthCheck') }
+  it { should be_allowed_action('route53:CreateHostedZone') }
+  it { should be_allowed_action('route53:CreateKeySigningKey') }
+  it { should be_allowed_action('route53:CreateReusableDelegationSet') }
+  it { should be_allowed_action('route53:CreateVPCAssociationAuthorization') }
+  it { should be_allowed_action('route53:DeactivateKeySigningKey') }
+  it { should be_allowed_action('route53:DeleteCidrCollection') }
+  it { should be_allowed_action('route53:DeleteDomain') }
+  it { should be_allowed_action('route53:DeleteHealthCheck') }
+  it { should be_allowed_action('route53:DeleteHostedZone') }
+  it { should be_allowed_action('route53:DeleteKeySigningKey') }
+  it { should be_allowed_action('route53:DeleteReusableDelegationSet') }
+  it { should be_allowed_action('route53:DeleteVPCAssociationAuthorization') }
+  it { should be_allowed_action('route53:DisassociateVPCFromHostedZone') }
+  it { should be_allowed_action('route53:GetAccountLimit') }
+  it { should be_allowed_action('route53:GetChange') }
+  it { should be_allowed_action('route53:GetCheckerIpRanges') }
+  it { should be_allowed_action('route53:GetDomainDetail') }
+  it { should be_allowed_action('route53:GetHealthCheck') }
+  it { should be_allowed_action('route53:GetHealthCheckCount') }
+  it { should be_allowed_action('route53:GetHealthCheckLastFailureReason') }
+  it { should be_allowed_action('route53:GetHealthCheckStatus') }
+  it { should be_allowed_action('route53:GetHostedZone') }
+  it { should be_allowed_action('route53:GetHostedZoneCount') }
+  it { should be_allowed_action('route53:GetHostedZoneLimit') }
+  it { should be_allowed_action('route53:GetReusableDelegationSet') }
+  it { should be_allowed_action('route53:GetReusableDelegationSetLimit') }
+  it { should be_allowed_action('route53:ListCidrBlocks') }
+  it { should be_allowed_action('route53:ListCidrCollections') }
+  it { should be_allowed_action('route53:ListCidrLocations') }
+  it { should be_allowed_action('route53:ListDomains') }
+  it { should be_allowed_action('route53:ListGeoLocations') }
+  it { should be_allowed_action('route53:ListHealthChecks') }
+  it { should be_allowed_action('route53:ListHostedZones') }
+  it { should be_allowed_action('route53:ListHostedZonesByName') }
+  it { should be_allowed_action('route53:ListHostedZonesByVPC') }
+  it { should be_allowed_action('route53:ListOperations') }
+  it { should be_allowed_action('route53:ListResourceRecordSets') }
+  it { should be_allowed_action('route53:ListReusableDelegationSets') }
+  it { should be_allowed_action('route53:ListTagsForResource') }
+  it { should be_allowed_action('route53:ListTagsForResources') }
+  it { should be_allowed_action('route53:ListVPCAssociationAuthorizations') }
+  it { should be_allowed_action('route53:UpdateDomainNameservers') }
+  it { should be_allowed_action('route53:UpdateHealthCheck') }
+  it { should be_allowed_action('route53:UpdateHostedZoneComment') }
+  it { should be_allowed_action('route53:*') }
+  it { should be_allowed_action('route53domains:DeleteTagsForDomain') }
+  it { should be_allowed_action('route53domains:ListTagsForDomain') }
+  it { should be_allowed_action('route53domains:UpdateTagsForDomain') }
+  it { should be_allowed_action('route53domains:*') }
+end

@@ -1,18 +1,31 @@
 # Companion Code for Effective Platform Engineering
 
+### Chapter 6
+
+[Configuring GitHub for signed commits](chapter-6/configuring_github_for_signed_commits).  
+
+[Exercise 6.1](chapter-6/6.1_developer_tools_selection_criteria) Developer Tool Selection Criteria  
+
+[Exercise 6.2](chapter-6/6.2_test_driven_development_of_infrastructure_code) Test-Driven Development of Infrastructure Code   
+
+[Exercise 6.3](chapter-6/6.3_static_code_analysis) Static Code Analysis  
+
+[Exercise 6.4](chapter-6/6.4_pre_commit_hooks) Pre-commit Hooks  
+
+[Exercise 6.5](chapter-6/6.5_experiment_with_self_hosted_runners) Experiment with Self-Hosted Runners  
+
+[Exercises 6.6 - 6.9](chapter-6/6.6-9_aws_iam_profiles) AWS IAM Profiles pipeline  
+
 ### Chapter 7
 
-Section 7.2 [Footnote 3](chapter-7/configuring_github_for_signed_commits.md).  
+[Exercise 7.1](chapter-7/7.1_aws_platform_hosted_zones) AWS Platform Hosted Zones  
 
-Exercise 7.1: [Assess a developer tool](chapter-7/7.1_developer_tools_selection_criteria/assessment-worksheet.md) in one of the categories against the criteria.   
+[Exercise 7.2](chapter-7/7.2_aws_platform_vpc) AWS Platform VPC  
 
-Exercise 7.2: [Use Awspec to test an AWS IAM Role](chapter-7/7.2_test_driven_development_of_infrastructure_code
-).  
+[Exercise 7.3](chapter-7/7.3_aws_control_plane_base) AWS Control Plane Base  
 
-Exercise 7.3: [Static code testing tools](chapter-7/7.3_static_code_analysis).  
+[Project 7.1](chapter-7/project-7.1) Auth0.com Identity Provider Configuration  
 
-Exercise 7.4: [Pre-commit hooks](chapter-7/7.4_pre_commit_hooks).  
+[Project 7.2](chapter-7/project-7.2) vsctl control plane cli initial setup
 
-7.2.3 Exercise: [Experiment with privately hosted runners](chapter-7/7.2.3_experiment_with_privately_hosted_runners/)  
- 
-7.3.2 Exercise: [Create a release pipeline for IAM service accounts and roles](chapter-7/7.3.2_create_release_pipeline_for_iam_service_accounts_and_roles/)
+### Chapter 8

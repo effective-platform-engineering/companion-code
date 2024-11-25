@@ -1,0 +1,17 @@
+{
+    "dataSource": "issues",
+    "prefix": "",
+    "ignoreLabels": ["documentation", "duplicate", "good first issue", "help wanted", "invalid", "question", "wontfix"],
+    "onlyMilestones": false,
+    "groupBy": {
+        "Enhancements:": ["enhancement", "upgrade"],
+        "Bug Fixes:": ["bug"]
+    },
+    "template": {
+        "commit": "({ message, url, author, name }) => `- [${message}](${url}) - ${author ? `@${author}` : name}`",
+        "issue": "- [{{text}}]({{url}}) {{name}}",
+        "group": "\n#### {{heading}}",
+        "release": "## {{release}} ({{date}})\n{{body}}",
+        "releaseSeparator": "\n---\n\n"
+    }
+}
