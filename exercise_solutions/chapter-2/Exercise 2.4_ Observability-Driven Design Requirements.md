@@ -28,6 +28,9 @@ Some example observability data that can be used to show correctness could inclu
   * This should show that traffic on any port was blocked. You may want to redirect traffic on port 80 to 443  
 * Route table listings  
   * This should show the route specified was added to the table
+* Log and configuration data for all changes made by the service includes service identifier
+  * Should be easy to see the current configuration that was made by the api along with historical changes
+
 
 **Is this API returning the expected value to the team or organization?**
 
@@ -35,11 +38,9 @@ Some example observability data that can be used to show value could include:
 
 * Time from initial check-in to availability on the internet  
   * Time taken should be low enough to show a significant decrease in the time taken to make a service available  
-* Developer satisfaction of feature use  
-  * Qualitative data from surveys and interviews should indicate the feature is easy to use  
 * Support requests submitted for DNS entry creation  
   * Ideally, this should be 0 to show that the feature is entirely self-service
 
 **Do we need any alerts for this feature?**
 
-In this case, we likely do not. There would be no robust way for the platform team to detect a service misconfiguration from an engineering team, and traffic being allowed through only port 443 should be verified through functional testing.
+Since this is an automated process for subdomains within a hosted zone, the service should be preventing duplicate DNS records. But, depending on how this functionality is implemented, that may not be easy to prevent. A recurring scan could be created to alert when duplicate records exist.
