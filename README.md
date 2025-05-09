@@ -70,6 +70,8 @@ Create a bash script that will sign a docker image and then verify the results
 
 ### Chapter 8
 
-[Exercise 8.2](Exercise-8.2_Run_Trivy_scan_on_metrics_server_chart.md) Run Trivy scan on metrics-server chart and create a values.yaml to correct the findings
-[Exercise 8.3 - 8.5](chapter-8/8.3-5_aws_control_plane_services) AWS Control Plane Servies
-[Exercise 8.6 - 8.12](chapter-8/8.6-12_aws_control_plane_extensions) AWS Control Plane Extensions
+[Exercise 8.2](Exercise-8.2_Run_Trivy_scan_on_metrics_server_chart.md) Run Trivy scan on metrics-server chart and create a values.yaml to correct the findings  
+
+[Exercise 8.3 - 8.5](chapter-8/8.3-5_aws_control_plane_services) AWS Control Plane Servies  
+
+[Exercise 8.6 - 8.12](chapter-8/8.6-12_aws_control_plane_extensions) AWS Control Plane Extensions  
