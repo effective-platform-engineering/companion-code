@@ -1,0 +1,5 @@
+{
+  "metrics_server_chart_version": "3.12.2",
+  "kube_state_metrics_chart_version": "5.33.0",
+  "kubernetes_event_exporter_chart_version": "3.5.0"
+}

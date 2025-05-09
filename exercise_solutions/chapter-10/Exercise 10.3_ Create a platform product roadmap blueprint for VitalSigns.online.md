@@ -1,6 +1,6 @@
-## ***Exercise 10.3: Create a platform product roadmap blueprint for VitalSigns.online***
+## ***Exercise 10.3: Create a platform product roadmap blueprint for epetech.online***
 
-Objective: The objective of this exercise is to think about how VitalSigns.online would create a platform product roadmap. Remember, you are not creating the roadmap itself as that would require understanding of the domain specific activities of VitalSigns. 
+Objective: The objective of this exercise is to think about how epetech.online would create a platform product roadmap. Remember, you are not creating the roadmap itself as that would require understanding of the domain specific activities of epetech. 
 
 Recommended Steps: In order ot achieve this objective, we recommend the following steps 
 

@@ -1,0 +1,39 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hpa-test-load-generator
+  namespace: test-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hpa-test-load-generator
+  template:
+    metadata:
+      labels:
+        app: hpa-test-load-generator
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+        - name: hpa-test-load-generator
+          image: busybox:1.28
+          args:
+            - "/bin/sh"
+            - "-c"
+            - "while sleep 0.01; do wget -q -O- http://php-apache; done"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 200Mi
+            limits:
+              cpu: 150m
+              memory: 250Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+                - ALL

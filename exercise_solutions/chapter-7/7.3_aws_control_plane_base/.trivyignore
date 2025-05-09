@@ -1,0 +1,25 @@
+# Ignore selected warnings from scanning the official AWS terraform modules
+#
+# all logging is turned on, scanner unable to detect aparently
+AVD-AWS-0038
+# Intentionally configured for both external K8s API access and ingress gateway. nodes are all on private network.
+AVD-AWS-0040
+AVD-AWS-0041
+AVD-AWS-0104
+# eks base role intentionally using wildcard in permission definition
+AVD-AWS-0057
+# intentional admin role
+AVD-KSV-0111
+AVD-KSV-0014
+AVD-KSV-0012
+AVD-KSV-0020
+AVD-KSV-0021
+# external registry is allowed
+AVD-KSV-0032
+AVD-KSV-0033
+AVD-KSV-0034
+AVD-KSV-0035
+
+# Not applying limit/request policy levels
+AVD-KSV-0039
+AVD-KSV-0040

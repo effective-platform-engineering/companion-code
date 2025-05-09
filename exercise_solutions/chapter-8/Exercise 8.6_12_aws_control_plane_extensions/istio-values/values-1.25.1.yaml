@@ -1,0 +1,78 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  profile: default
+  hub: docker.io/istio
+  tag: 1.25.1
+  namespace: istio-system
+
+  components:
+    base:
+      enabled: true
+
+    pilot:
+      enabled: true
+      k8s:
+        resources:
+          requests:
+            cpu: 10m
+            memory: 128Mi
+          limits:
+            cpu: 2000m
+            memory: 2024Mi
+        nodeSelector:
+          nodegroup: management-arm-rkt-mng
+        tolerations:
+          - key: "dedicated"
+            operator: "Equal"
+            value: "management"
+            effect: "NoSchedule"
+        podDisruptionBudget:
+          maxUnavailable: 1
+    cni:
+      enabled: true
+
+    ztunnel:
+      enabled: false
+
+    istiodRemote:
+      enabled: false
+
+    egressGateways:
+      - enabled: false
+        name: istio-egressgateway
+
+    ingressGateways:
+      - enabled: true
+        name: istio-ingressgateway
+        k8s:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 128Mi
+            limits:
+              cpu: 2000m
+              memory: 2024Mi
+          nodeSelector:
+            nodegroup: management-arm-rkt-mng
+          tolerations:
+            - key: "dedicated"
+              operator: "Equal"
+              value: "management"
+              effect: "NoSchedule"
+          podDisruptionBudget:
+            maxUnavailable: 1
+  meshConfig:
+    meshMTLS:
+      minProtocolVersion: TLSV1_3
+
+  values:
+    base:
+      enableCRDTemplates: false
+    cni:
+      excludeNamespaces:
+        - istio-system
+    global:
+      proxy:
+        tracer: zipkin
+

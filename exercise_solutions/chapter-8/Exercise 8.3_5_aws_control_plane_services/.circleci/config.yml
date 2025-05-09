@@ -1,0 +1,146 @@
+---
+version: 2.1
+
+orbs:
+  kube: twdps/kube-ops@1.1.2
+  op: twdps/onepassword@3.0.0
+  do: twdps/pipeline-events@5.1.0
+
+globals:
+  - &context platform
+  - &executor-image twdps/circleci-kube-ops:alpine-2025.04
+
+on-push-main: &on-push-main
+  branches:
+    only: /main/
+  tags:
+    ignore: /.*/
+
+on-tag-main: &on-tag-main
+  branches:
+    ignore: /.*/
+  tags:
+    only: /.*/
+
+commands:
+
+  set-environment:
+    description: generate environment credentials and configuration from templates
+    parameters:
+      cluster:
+        description: cluster and tf workspace name
+        type: string
+    steps:
+      - op/env:
+          env-file: op.<< parameters.cluster >>.env
+      - kube/op-config:
+          op-value: my-vault/<< parameters.cluster>>/kubeconfig-base64
+      - do/bash-functions
+
+  run-integration-tests:
+    steps:
+      - run:
+          name: run control plane services integration tests
+          command: bash scripts/services_integration_test.sh
+
+jobs:
+
+  deploy control plane services:
+    docker:
+      - image: *executor-image
+    parameters:
+      cluster:
+        description: cluster name
+        type: string
+    steps:
+      - checkout
+      - set-environment:
+          cluster: << parameters.cluster >>
+      - run:
+          name: install metrics-server
+          command: bash scripts/install_metrics_server.sh << parameters.cluster >>
+      - run:
+          name: install kube-state-metrics
+          command: bash scripts/install_kube_state_metrics.sh << parameters.cluster >>
+      - run:
+          name: install kubernetes-event-exporter
+          command: bash scripts/install_kubernetes_event_exporter.sh << parameters.cluster >>
+      - run-integration-tests
+
+  integration-tests:
+    docker:
+      - image: *executor-image
+    parameters:
+      cluster:
+        description: cluster name
+        type: string
+    steps:
+      - checkout
+      - set-environment:
+          cluster: << parameters.cluster >>
+      - run-integration-tests
+
+workflows:
+
+  deploy sbx-i01-aws-us-east-1 control plane services:
+    when:
+      not:
+        equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    jobs:
+      - deploy control plane services:
+          name: deploy sbx-i01-aws-us-east-1 control plane services
+          context: *context
+          cluster: sbx-i01-aws-us-east-1
+          filters: *on-push-main
+
+  release prod-i01-aws-us-east-2 control plane base:
+    jobs:
+      - deploy control plane services:
+          name: deploy prod-i01-aws-us-east-2 control plane services
+          context: *context
+          cluster: prod-i01-aws-us-east-2
+          filters: *on-tag-main
+
+      - do/gh-release:
+          name: generate release notes
+          context: *context
+          notes-from-file: release.md
+          include-commit-msg: true
+          before-release:
+            - op/env:
+                env-file: op.prod-i01-aws-us-east-2.env
+          after-release:
+            - do/slack-bot:
+                channel: platform-events
+                message: Release aws-control-plane-services
+                include-link: true
+                include-tag: true
+          requires:
+            - deploy prod-i01-aws-us-east-2 control plane services
+          filters: *on-tag-main
+
+      - do/schedule-pipeline:
+          name: schedule nightly integration tests
+          context: *context
+          scheduled-pipeline-name: nightly control plane services integration tests
+          scheduled-pipeline-description: |
+            Automatically triggers nightly run of control plane services integration tests
+          hours-of-day: "[1]"
+          days-of-week: "[\"SUN\"]"
+          before-schedule:
+            - op/env:
+                env-file: op.prod-i01-aws-us-east-2.env
+          filters: *on-tag-main
+
+  run nightly integration tests:
+    when:
+        equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    jobs:
+      - integration-tests:
+          name: nightly sbx-i01-aws-us-east-1 integration tests
+          context: *context
+          cluster: sbx-i01-aws-us-east-1
+      - integration-tests:
+          name: nightly prod-i01-aws-us-east-2 integration tests
+          context: *context
+          cluster: prod-i01-aws-us-east-2

@@ -1,0 +1,9 @@
+get-token.sh
+.venv
+access_token
+source.env
+client_credentials.json
+request-body/github-social-connection.json
+request-body/set-claims-as-github-teams-trigger-binding.json
+request-body/set-claims-as-github-teams.json
+actions/set-claims-as-github-teams.js

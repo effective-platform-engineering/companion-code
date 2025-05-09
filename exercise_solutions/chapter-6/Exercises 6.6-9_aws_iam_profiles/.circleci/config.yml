@@ -1,0 +1,225 @@
+---
+version: 2.1
+
+orbs:
+  terraform: twdps/terraform@3.1.1
+  op: twdps/onepassword@3.0.0
+  do: twdps/pipeline-events@5.1.0
+
+globals:
+  - &context platform
+  - &executor-image twdps/circleci-infra-aws:alpine-2025.04
+
+on-push-main: &on-push-main
+  branches:
+    only: /main/
+  tags:
+    ignore: /.*/
+
+on-tag-main: &on-tag-main
+  branches:
+    ignore: /.*/
+  tags:
+    only: /.*/
+
+commands:
+
+  set-environment:
+    description: set environment credentials and configuration from templates
+    parameters:
+      account:
+        description: account to be configured
+        type: string
+    steps:
+      - op/env:
+          env-file: op.<< parameters.account >>.env
+      - op/tpl:
+          tpl-path: environments
+          tpl-file: << parameters.account >>.auto.tfvars.json
+      - terraform/terraformrc
+      - do/bash-functions
+
+  integration-tests:
+    parameters:
+      account:
+        description: workspace environment to test
+        type: string
+    steps:
+      - run:
+          name: run awspec aws configuration tests
+          command: bash scripts/run_awspec_integration_tests.sh << parameters.account >>
+
+  rotate-service-account-credentials:
+    parameters:
+      account:
+        description: rotate service account credentials
+        type: string
+    steps:
+      - run:
+          name: rotate (or create) all service account credentials
+          command: bash scripts/rotate_svc_acct_credentials.sh << parameters.account >>
+
+jobs:
+
+  recurring-integration-tests:
+    description: |
+      recurring job (weekly) to run pipeline integration tests to detect aws configuration drift
+    docker:
+      - image: *executor-image
+    parameters:
+      account:
+        description: account configuration to test
+        type: string
+    steps:
+      - checkout
+      - setup_remote_docker
+      - set-environment:
+          account: << parameters.account >>
+      - integration-tests:
+          account: << parameters.account >>
+
+  rotate-credentials:
+    description: recurring job to rotate service account credentials
+    docker:
+      - image: *executor-image
+    environment:
+      TF_WORKSPACE: nonprod
+    steps:
+      - checkout
+      - setup_remote_docker
+      - set-environment:
+          account: nonprod
+      - rotate-service-account-credentials:
+          account: nonprod
+
+workflows:
+
+  deploy service accounts and roles to nonprod account:
+    when:
+      not:
+        equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    jobs:
+      - terraform/static-analysis:
+          name: static code analysis
+          context: *context
+          executor-image: *executor-image
+          workspace: nonprod
+          tflint-scan: true
+          tflint-provider: aws
+          trivy-scan: true
+          filters: *on-push-main
+
+      - terraform/plan:
+          name: nonprod change plan
+          context: *context
+          executor-image: *executor-image
+          workspace: nonprod
+          checkov-scan: true
+          before-plan:
+            - set-environment:
+                account: nonprod
+          filters: *on-push-main
+
+      - approve nonprod changes:
+          type: approval
+          requires:
+            - static code analysis
+            - nonprod change plan
+          filters: *on-push-main
+
+      - terraform/apply:
+          name: apply nonprod changes
+          context: *context
+          workspace: nonprod
+          before-apply:
+            - set-environment:
+                account: nonprod
+          after-apply:
+            - integration-tests:
+                account: nonprod
+            - rotate-service-account-credentials:
+                account: nonprod
+          requires:
+            - approve nonprod changes
+          filters: *on-push-main
+
+  deploy roles to prod account:
+    jobs:
+      - terraform/plan:
+          name: prod change plan
+          context: *context
+          executor-image: *executor-image
+          workspace: prod
+          checkov-scan: true
+          before-plan:
+            - set-environment:
+                account: prod
+          filters: *on-tag-main
+
+      - approve prod changes:
+          type: approval
+          requires:
+            - prod change plan
+          filters: *on-tag-main
+
+      - terraform/apply:
+          name: apply prod changes
+          context: *context
+          workspace: prod
+          before-apply:
+            - set-environment:
+                account: prod
+          after-apply:
+            - integration-tests:
+                account: prod
+            - do/slack-bot:
+                channel: platform-events
+                message: Release aws-iam-profiles
+                include-link: true
+                include-tag: true
+          requires:
+            - approve prod changes
+          filters: *on-tag-main
+
+      - do/gh-release:
+          name: generate release notes
+          context: *context
+          notes-from-file: release.md
+          include-commit-msg: true
+          before-release:
+            - op/env:
+                env-file: op.prod.env
+          requires:
+            - apply prod changes
+          filters: *on-tag-main
+
+  schedule weekly rotation and integration test:
+    jobs:
+      - do/schedule-pipeline:
+          name: weekly integration test and credential rotation
+          context: *context
+          scheduled-pipeline-name: weekly-integration-test
+          scheduled-pipeline-description: |
+            Weekly, automated run of iam-credential-rotation and iam-profiles integration tests.
+          hours-of-day: "[1]"
+          days-of-week: "[\"SUN\"]"
+          before-schedule:
+            - op/env:
+                env-file: op.prod.env
+          filters: *on-tag-main
+
+  weekly integration test:
+    when:
+      equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    jobs:
+      - recurring-integration-tests:
+          name: Nonprod integration test
+          context: *context
+          account: nonprod
+      - recurring-integration-tests:
+          name: Prod integration test
+          context: *context
+          account: prod
+      - rotate-credentials:
+          name: Rotate service account credentials
+          context: *context

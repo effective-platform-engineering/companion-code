@@ -1,0 +1,31 @@
+{
+  "name": "dev-epectl",
+  "is_token_endpoint_ip_header_trusted": false,
+  "description": "dev-epectl command line tool auth0 application definition",
+  "is_first_party": true,
+  "oidc_conformant": true,
+  "refresh_token": {
+      "expiration_type": "expiring",
+      "leeway": 0,
+      "token_lifetime": 604800,
+      "infinite_token_lifetime": false,
+      "idle_token_lifetime": 172800,
+      "infinite_idle_token_lifetime": false,
+      "rotation_type": "non-rotating"
+  },
+  "sso_disabled": false,
+  "cross_origin_auth": false,
+  "jwt_configuration": {
+      "alg": "RS256",
+      "lifetime_in_seconds": 3600
+  },
+  "token_endpoint_auth_method": "none",
+  "app_type": "native",
+  "grant_types": [
+      "implicit",
+      "authorization_code",
+      "refresh_token",
+      "urn:ietf:params:oauth:grant-type:device_code"
+  ],
+  "custom_login_page_on": true
+}

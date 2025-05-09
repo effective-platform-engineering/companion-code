@@ -1,0 +1,101 @@
+---
+version: 2.1
+
+orbs:
+  op: twdps/onepassword@3.0.0
+  do: twdps/pipeline-events@5.0.1
+
+globals:
+  - &context platform
+  - &executor-image twdps/circleci-python-builder:5.1.1
+
+on-push-main: &on-push-main
+  branches:
+    only: /main/
+  tags:
+    ignore: /.*/
+
+on-tag-main: &on-tag-main
+  branches:
+    ignore: /.*/
+  tags:
+    only: /.*/
+
+commands:
+
+  set-environment:
+    parameters:
+      tenant:
+        description: set tenant ENV
+        type: string
+    steps:
+      - op/env:
+          env-file: op.<< parameters.tenant >>.env
+
+jobs:
+
+  configure-auth0-tenant:
+    description: configure auth0 tenant
+    docker:
+      - image: *executor-image
+    parameters:
+      tenant:
+        description: auth0 tenant device-auth-flow to configure
+        type: string
+      web:
+        description: auth0 tenant web-auth configure
+        type: string
+    steps:
+      - checkout
+      - setup_remote_docker
+      - set-environment:
+          tenant: << parameters.tenant >>
+      - run:
+          name: install requirements
+          command: pip install -r requirements.txt
+      - run:
+          name: lint invoke tasks
+          command: pylint tasks
+      - run:
+          name: configure Auth0 tenant and device-auth-flow client
+          command: inv idp.install
+      - run:
+          name: write device-auth-flow client credentials to secrets store
+          command: bash scripts/write_client_credentials.sh << parameters.tenant >> << parameters.web >>
+
+workflows:
+
+  development tenant build:
+    jobs:
+      - configure-auth0-tenant:
+          name: configure dev tenant
+          context: *context
+          tenant: dev-epectl
+          web: dev-web-authentication
+          filters: *on-push-main
+
+  production tenant configuration:
+    jobs:
+      - configure-auth0-tenant:
+          name: configure prod tenant
+          context: *context
+          tenant: epectl
+          web: web-authentication
+          filters: *on-tag-main
+
+      - do/gh-release:
+          name: generate release notes
+          context: *context
+          notes-from-file: release.md
+          include-commit-msg: true
+          before-release:
+            - op/env:
+                env-file: op.epectl.env
+            - do/slack-bot:
+                channel: platform-events
+                message: Release epectl-auth0-management
+                include-link: true
+                include-tag: true
+          requires:
+            - configure prod tenant
+          filters: *on-tag-main

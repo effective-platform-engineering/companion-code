@@ -1,0 +1,47 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: block-test-pod
+  namespace: test-system
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node.kubernetes.io/role
+            operator: In
+            values:
+            - management
+  tolerations:
+    - key: "dedicated"
+      operator: "Equal"
+      value: "management"
+      effect: "NoSchedule"
+  containers:
+  - name: block-test-pod
+    image: busybox:1.36
+    command: ["/bin/sh", "-c"]
+    args: ["tail -f /dev/null"]
+    volumeDevices:
+    - name: data
+      devicePath: /dev/xvda
+    resources:
+      requests:
+        cpu: 10m
+        memory: 50Mi
+      limits:
+        cpu: 100m
+        memory: 200Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      seccompProfile:
+        type: RuntimeDefault
+      capabilities:
+        drop:
+          - ALL
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: test-block-claim

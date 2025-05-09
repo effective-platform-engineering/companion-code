@@ -1,0 +1,59 @@
+image:
+  pullPolicy: Always
+
+customLabels:
+    kubernetes.io/cluster-service: "true"
+    kubernetes.io/name: "kube-state-metrics"
+
+containerSecurityContext:
+  runAsGroup: 65534
+  runAsUser: 65534
+
+# Available collectors for kube-state-metrics.
+# By default, all available resources are enabled, comment out to disable.
+collectors:
+  - certificatesigningrequests
+  - configmaps
+  - cronjobs
+  - daemonsets
+  - deployments
+  - endpoints
+  - horizontalpodautoscalers
+  - ingresses
+  - jobs
+  - leases
+  - limitranges
+  - mutatingwebhookconfigurations
+  - namespaces
+  - networkpolicies
+  - nodes
+  - persistentvolumeclaims
+  - persistentvolumes
+  - poddisruptionbudgets
+  - pods
+  - replicasets
+  - replicationcontrollers
+  - resourcequotas
+  # - secrets
+  - services
+  - statefulsets
+  - storageclasses
+  - validatingwebhookconfigurations
+  - volumeattachments
+
+nodeSelector:
+  nodegroup: management-arm-rkt-mng
+
+tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "management"
+    effect: "NoSchedule"
+
+resources:
+  limits:
+   cpu: 100m
+   memory: 64Mi
+  requests:
+   cpu: 10m
+   memory: 32Mi

@@ -1,0 +1,253 @@
+version: 2.1
+
+orbs:
+  terraform: twdps/terraform@3.1.1
+  kube: twdps/kube-ops@1.1.2
+  op: twdps/onepassword@3.0.0
+  do: twdps/pipeline-events@5.1.0
+
+globals:
+  - &context platform
+  - &executor-image twdps/circleci-infra-aws:alpine-2025.04
+
+on-push-main: &on-push-main
+  branches:
+    only: /main/
+  tags:
+    ignore: /.*/
+
+on-tag-main: &on-tag-main
+  branches:
+    ignore: /.*/
+  tags:
+    only: /.*/
+
+commands:
+
+  set-environment:
+    description: generate environment credentials and configuration from templates
+    parameters:
+      cluster:
+        description: cluster and tf workspace name
+        type: string
+    steps:
+      - op/env:
+          env-file: op.<< parameters.cluster >>.env
+      - op/tpl:
+          tpl-path: environments
+          tpl-file: << parameters.cluster >>.auto.tfvars.json
+      - terraform/terraformrc
+      - do/bash-functions
+
+  run-integration-tests:
+    description: run cluster configuration tests
+    parameters:
+      cluster:
+        description: cluster and tf workspace name
+        type: string
+    steps:
+      - run:
+          name: run aws configuration checks
+          environment:
+            CLUSTER: << parameters.cluster >>
+          command: bash scripts/aws_integration_tests.sh << parameters.cluster >>
+      - run:
+          name: run cluster service smoke tests
+          command: bash scripts/eks_addons_tests.sh << parameters.cluster >>
+      - run:
+          name: run karpenter node pool functional tests
+          command: bash scripts/node_pool_tests.sh
+      - run:
+          name: run ebs storage class functional tests
+          command: bash scripts/ebs_storage_class_tests.sh << parameters.cluster >>
+      - run:
+          name: run efs storage class functional tests
+          command: bash scripts/efs_storage_class_tests.sh << parameters.cluster >>
+
+  base-configuration-validation:
+    description: write kubeconfig, cluster-url, and base64-certificate-authority-data to vault
+    parameters:
+      cluster:
+        description: cluster and tf workspace name
+        type: string
+        default: ""
+    steps:
+      - run:
+          name: generate kubeconfig
+          command: bash scripts/generate_kubeconfig.sh << parameters.cluster >>
+      - run:
+          name: store cluster identifiers and apply baseline configuration
+          command: bash scripts/base_configuration.sh << parameters.cluster >>
+      - op/env:
+          env-file: op.<< parameters.cluster >>.env
+      - run-integration-tests:
+          cluster: << parameters.cluster >>
+
+  replace-management-node-group-nodes:
+      parameters:
+        cluster:
+          description: cluster and tf workspace name
+          type: string
+          default: ""
+      steps:
+        - run:
+            name: taint eks-managed-nodegroup for complete refresh to latest AWS managed EKS-optimized ami
+            command: |
+              export TAINT=$(jq -er .auto_refresh_management_node_group << parameters.cluster >>.auto.tfvars.json)
+              if [[ "$TAINT" == "true" ]]; then
+                terraform taint "module.eks.module.eks_managed_node_group[\"management-arm-rkt-mng\"].aws_eks_node_group.this[0]"
+              fi
+
+jobs:
+
+  integration-tests:
+    docker:
+      - image: *executor-image
+    parameters:
+      cluster:
+        description: cluster and tf workspace name
+        type: string
+    steps:
+      - checkout
+      - set-environment:
+          cluster: << parameters.cluster >>
+      - kube/op-config:
+          op-value: platform/<< parameters.cluster>>/kubeconfig-base64
+      - run-integration-tests:
+          cluster: << parameters.cluster >>
+
+
+workflows:
+
+  deploy sbx-i01-aws-us-east-1 control plane base:
+    when:
+      not:
+        equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    jobs:
+      - terraform/static-analysis:
+          name: static code analysis
+          context: *context
+          executor-image: *executor-image
+          trivy-scan: true
+          before-static-analysis:
+            - set-environment:
+                cluster: sbx-i01-aws-us-east-1
+          filters: *on-push-main
+
+      - terraform/plan:
+          name: plan sbx-i01-aws-us-east-1 changes
+          context: *context
+          executor-image: *executor-image
+          workspace: sbx-i01-aws-us-east-1
+          tfc-workspace: aws-control-plane-base-sbx-i01-aws-us-east-1
+          tfc-organization: epetech
+          before-plan:
+            - set-environment:
+                cluster: sbx-i01-aws-us-east-1
+          filters: *on-push-main
+
+      - approve sbx-i01-aws-us-east-1 changes:
+          type: approval
+          requires:
+            - static code analysis
+            - plan sbx-i01-aws-us-east-1 changes
+          filters: *on-push-main
+
+      - terraform/apply:
+          name: apply sbx-i01-aws-us-east-1 changes
+          context: *context
+          executor-image: *executor-image
+          workspace: sbx-i01-aws-us-east-1
+          before-apply:
+            - set-environment:
+                cluster: sbx-i01-aws-us-east-1
+          after-terraform-init:
+            - replace-management-node-group-nodes:
+                cluster: sbx-i01-aws-us-east-1
+          after-apply:
+            - base-configuration-validation:
+                cluster: sbx-i01-aws-us-east-1
+          requires:
+            - approve sbx-i01-aws-us-east-1 changes
+          filters: *on-push-main
+
+  release prod-i01-aws-us-east-2 control plane base:
+    jobs:
+      - terraform/plan:
+          name: plan prod-i01-aws-us-east-2 changes
+          context: *context
+          executor-image: *executor-image
+          workspace: prod-i01-aws-us-east-2
+          tfc-workspace: aws-control-plane-base-prod-i01-aws-us-east-2
+          tfc-organization: epetech
+          before-plan:
+            - set-environment:
+                cluster: prod-i01-aws-us-east-2
+          filters: *on-tag-main
+
+      - approve prod-i01-aws-us-east-2 changes:
+          type: approval
+          requires:
+            - plan prod-i01-aws-us-east-2 changes
+          filters: *on-tag-main
+
+      - terraform/apply:
+          name: apply prod-i01-aws-us-east-2 changes
+          context: *context
+          executor-image: *executor-image
+          workspace: prod-i01-aws-us-east-2
+          before-apply:
+            - set-environment:
+                cluster: prod-i01-aws-us-east-2
+          after-terraform-init:
+            - replace-management-node-group-nodes:
+                cluster: prod-i01-aws-us-east-2
+          after-apply:
+            - base-configuration-validation:
+                cluster: prod-i01-aws-us-east-2
+            - do/slack-bot:
+                channel: platform-events
+                message: Release aws-control-plane-base
+                include-link: true
+                include-tag: true
+          requires:
+            - approve prod-i01-aws-us-east-2 changes
+          filters: *on-tag-main
+
+      - do/gh-release:
+          name: generate release notes
+          context: *context
+          notes-from-file: release.md
+          include-commit-msg: true
+          before-release:
+            - op/env:
+                env-file: op.prod-i01-aws-us-east-2.env
+          requires:
+            - apply prod-i01-aws-us-east-2 changes
+          filters: *on-tag-main
+
+      - do/schedule-pipeline:
+          name: schedule nightly integration tests
+          context: *context
+          scheduled-pipeline-name: nightly control plane base integration test
+          scheduled-pipeline-description: |
+            Automatically triggers nightly run of integration-test job
+          hours-of-day: "[1]"
+          days-of-week: "[\"SUN\"]"
+          before-schedule:
+            - op/env:
+                env-file: op.prod-i01-aws-us-east-2.env
+          filters: *on-tag-main
+
+  run nightly integration test:
+    when:
+      equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    jobs:
+      - integration-tests:
+          name: nightly sbx-i01-aws-us-east-1 integration test
+          cluster: sbx-i01-aws-us-east-1
+          context: *context
+      - integration-tests:
+          name: nightly prod-i01-aws-us-east-2 integration test
+          cluster: prod-i01-aws-us-east-2
+          context: *context

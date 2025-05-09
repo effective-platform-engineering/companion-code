@@ -1,0 +1,110 @@
+---
+version: 2.1
+
+orbs:
+  terraform: twdps/terraform@3.1.1
+  op: twdps/onepassword@3.0.0
+  do: twdps/pipeline-events@5.1.0
+
+globals:
+  - &context <my-team>
+  - &executor-image twdps/circleci-infra-aws:alpine-2025.04
+
+on-push-main: &on-push-main
+  branches:
+    only: /main/
+  tags:
+    ignore: /.*/
+
+on-tag-main: &on-tag-main
+  branches:
+    ignore: /.*/
+  tags:
+    only: /.*/
+
+commands:
+
+  set-environment:
+    description: generate environment credentials and configuration from templates
+    parameters:
+      account:
+        type: string
+    steps:
+      - op/env:
+          env-file: op.env
+      - op/tpl:
+          tpl-path: environments
+          tpl-file: << parameters.account >>.auto.tfvars.json
+      - terraform/terraformrc
+      - do/bash-functions
+
+  integration-tests:
+    parameters:
+      account:
+        type: string
+    steps:
+      - run:
+          name: integration test nonprod account
+          command: bash scripts/hosted_zone_test.sh << parameters.account >> nonprod
+      - run:
+          name: integration test prod account
+          command: bash scripts/hosted_zone_test.sh << parameters.account >> prod
+
+workflows:
+  version: 2
+
+  hosted-zones change plan:
+    jobs:
+      - terraform/static-analysis:
+          name: static code analysis
+          context: *context
+          executor-image: *executor-image
+          workspace: state
+          tflint-scan: true
+          tflint-provider: aws
+          trivy-scan: true
+          before-static-analysis:
+            - op/env:
+                env-file: op.env
+          filters: *on-push-main
+
+      - terraform/plan:
+          name: hosted-zones change plan
+          context: *context
+          executor-image: *executor-image
+          workspace: state
+          before-plan:
+            - set-environment:
+                account: multiaccount
+          filters: *on-push-main
+
+  hosted-zones release:
+    jobs:
+      - terraform/apply:
+          name: hosted-zones release
+          context: *context
+          workspace: state
+          before-apply:
+            - set-environment:
+                account: multiaccount
+          after-apply:
+            - integration-tests:
+                account: multiaccount
+            - do/slack-bot:
+                channel: engineering platform events
+                message: Release aws-platform-hosted-zones
+                include-link: true
+                include-tag: true
+          filters: *on-tag-main
+
+      - do/release:
+          name: generate release notes
+          context: *context
+          on-tag: true
+          additional-args: "--data-source=commits"
+          before-release:
+            - op/env:
+                env-file: op.env
+          requires:
+            - hosted-zones release
+          filters: *on-tag-main

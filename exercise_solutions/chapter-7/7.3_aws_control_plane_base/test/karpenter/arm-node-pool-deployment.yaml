@@ -1,0 +1,35 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-arm-node-pool
+  namespace: test-system
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: test-arm-node-pool
+  template:
+    metadata:
+      labels:
+        app: test-arm-node-pool
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      containers:
+        - name: test-arm-node-pool
+          image: public.ecr.aws/eks-distro/kubernetes/pause:3.7
+          resources:
+            requests:
+              cpu: 100m
+              memory: 200Mi
+            limits:
+              cpu: 150m
+              memory: 250Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+                - ALL

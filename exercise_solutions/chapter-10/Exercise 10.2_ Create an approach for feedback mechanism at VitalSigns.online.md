@@ -1,6 +1,6 @@
-## ***Exercise 10.2: Create an approach for feedback mechanism at VitalSigns.online***
+## ***Exercise 10.2: Create an approach for feedback mechanism at epetech.online***
 
-Objective**:** Implement a feedback mechanism to gather qualitative and quantitative insights from internal developers, third-party developers, and partners regarding the usability, performance, and challenges of using VitalSigns' API services.
+Objective**:** Implement a feedback mechanism to gather qualitative and quantitative insights from internal developers, third-party developers, and partners regarding the usability, performance, and challenges of using epetech' API services.
 
 Recommended steps:
 
@@ -11,6 +11,6 @@ Recommended steps:
 
 #### Intended outcome:
 
-By implementing this simple feedback mechanism, VitalSigns should be able continuously improve its developer platform, ensuring both internal and external stakeholders are satisfied with the usability and performance of their APIs. 
+By implementing this simple feedback mechanism, epetech should be able continuously improve its developer platform, ensuring both internal and external stakeholders are satisfied with the usability and performance of their APIs. 
 
 ### **Solution**

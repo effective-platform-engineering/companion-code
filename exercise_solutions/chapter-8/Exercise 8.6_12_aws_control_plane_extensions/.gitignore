@@ -1,0 +1,14 @@
+source.env
+.python-version
+kubeconfig*
+sbx-i01-aws-us-east-1.auto.tfvars.json
+.terraform*
+sbx-i01-aws-us-east-1-cluster-issuer.yaml
+credentials
+bash-functions.sh
+istio-1*
+istio-2*
+cluster-domains-values.yaml
+tpl/*-certificate.yaml
+tpl/*-gateway.yaml
+test/httpbin/virtual-service.yaml

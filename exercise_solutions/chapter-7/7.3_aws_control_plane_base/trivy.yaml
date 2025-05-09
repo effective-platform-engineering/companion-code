@@ -1,0 +1,7 @@
+misconfiguration:
+    terraform:
+        exclude-downloaded-modules: true
+scan:
+  skip-dirs:
+    - .terraform/modules/eks/examples
+    - .terraform/modules/karpenter/examples

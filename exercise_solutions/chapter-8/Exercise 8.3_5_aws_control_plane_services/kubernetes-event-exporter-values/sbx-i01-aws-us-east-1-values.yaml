@@ -1,0 +1,75 @@
+nameOverride: event-exporter
+
+image:
+  pullPolicy: Always
+
+rbac:
+  ## @param rbac.create Create the RBAC roles for API accessibility
+  ##
+  create: true
+  ## @param rbac.rules [array] List of rules for the cluster role
+  ##
+  rules:
+    - apiGroups: ["*"]
+      resources:
+      - certificatesigningrequests
+      - configmaps
+      - cronjobs
+      - daemonsets
+      - deployments
+      - endpoints
+      - events
+      - horizontalpodautoscalers
+      - ingresses
+      - jobs
+      - leases
+      - limitranges
+      - mutatingwebhookconfigurations
+      - namespaces
+      - networkpolicies
+      - nodes
+      - nodeclaims
+      - persistentvolumeclaims
+      - persistentvolumes
+      - poddisruptionbudgets
+      - pods
+      - replicasets
+      - replicationcontrollers
+      - resourcequotas
+      - services
+      - statefulsets
+      - storageclasses
+      - validatingwebhookconfigurations
+      - volumeattachments
+      verbs: ["get", "watch", "list"]
+
+pdb:
+  create: true
+  minAvailable: "0"
+
+containerSecurityContext:
+  enabled: true
+  runAsUser: 65534
+  runAsGroup: 65534
+  runAsNonRoot: true
+  privileged: false
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  seccompProfile:
+    type: "RuntimeDefault"
+
+resourcesPreset: "nano"
+
+nodeSelector:
+  nodegroup: management-arm-rkt-mng
+
+tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "management"
+    effect: "NoSchedule"
+
+config:
+  metricsNamePrefix: "event_exporter_"

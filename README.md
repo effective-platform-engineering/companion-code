@@ -26,6 +26,6 @@
 
 [Project 7.1](chapter-7/project-7.1) Auth0.com Identity Provider Configuration  
 
-[Project 7.2](chapter-7/project-7.2) vsctl control plane cli initial setup
+[Project 7.2](chapter-7/project-7.2) epectl control plane cli initial setup
 
 ### Chapter 8

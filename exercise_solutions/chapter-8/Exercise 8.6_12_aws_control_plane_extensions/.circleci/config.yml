@@ -1,0 +1,219 @@
+---
+version: 2.1
+
+orbs:
+  terraform: twdps/terraform@3.1.1
+  kube: twdps/kube-ops@1.1.2
+  op: twdps/onepassword@3.0.0
+  do: twdps/pipeline-events@5.0.1
+
+globals:
+  - &context <my-team>
+  - &executor-image twdps/circleci-kube-ops:alpine-2025.04
+
+on-push-main: &on-push-main
+  branches:
+    only: /main/
+  tags:
+    ignore: /.*/
+
+on-tag-main: &on-tag-main
+  branches:
+    ignore: /.*/
+  tags:
+    only: /.*/
+
+commands:
+
+  set-environment:
+    description: generate environment credentials and configuration from templates
+    parameters:
+      cluster:
+        description: cluster and tf workspace name
+        type: string
+    steps:
+      - op/env:
+          env-file: op.<< parameters.cluster >>.env
+      - op/tpl:
+          tpl-path: environments
+          tpl-file: << parameters.cluster >>.auto.tfvars.json
+      - kube/op-config:
+          op-value: my-vault/<< parameters.cluster >>/kubeconfig-base64
+      - terraform/terraformrc
+      - do/bash-functions
+
+  validate-service-account-roles:
+    parameters:
+      cluster:
+        description: cluster and tf workspace name
+        type: string
+    steps:
+      - run:
+          name: run service account iam roles state tests
+          environment:
+            WORKSPACE: << parameters.cluster >>
+          command: bash scripts/service_account_iam_roles_state_test.sh << parameters.cluster >>
+
+  run-integration-tests:
+    parameters:
+      cluster:
+        description: cluster and tf workspace name
+        type: string
+    steps:
+      - run:
+          name: run control plane services state test
+          command: bats test/services-state-test.bats
+      - run:
+          name: run control plane services functional test
+          command: bash scripts/extensions_functional_test.sh << parameters.cluster >>
+
+jobs:
+
+  deploy control plane extensions:
+    docker:
+      - image: *executor-image
+    parameters:
+      cluster:
+        description: cluster name
+        type: string
+    steps:
+      - checkout
+      - set-environment:
+          cluster: << parameters.cluster >>
+      - run:
+          name: install istio
+          command: bash scripts/install_istio.sh << parameters.cluster >>
+      - run:
+          name: install cert-manager
+          command: bash scripts/install_cert_manager.sh << parameters.cluster >>
+      - run:
+          name: install external-dns
+          command: bash scripts/install_external_dns.sh << parameters.cluster >>
+      - run:
+          name: deploy cluster certificate issuer
+          command: |
+            bash scripts/define_certificate_issuer.sh << parameters.cluster >>
+            bash scripts/deploy_certificate_issuer.sh << parameters.cluster >>
+      - run:
+          name: deploy cluster defautl gateways
+          command: bash scripts/deploy_gateways.sh << parameters.cluster >>
+      - run-integration-tests:
+           cluster: << parameters.cluster >>
+
+  integration tests:
+    docker:
+      - image: *executor-image
+    parameters:
+      cluster:
+        description: cluster name
+        type: string
+    steps:
+      - checkout
+      - set-environment:
+          cluster: << parameters.cluster >>
+      - run-integration-tests:
+           cluster: << parameters.cluster >>
+
+workflows:
+
+  deploy sbx-i01-aws-us-east-1 control plane extensions:
+    when:
+      not:
+        equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    jobs:
+      - terraform/static-analysis:
+          name: static code analysis
+          context: *context
+          trivy-scan: true
+          before-static-analysis:
+            - set-environment:
+                cluster: sbx-i01-aws-us-east-1
+          filters: *on-push-main
+
+      - terraform/apply:
+          name: apply sbx-i01-aws-us-east-1 service account roles
+          context: *context
+          workspace: sbx-i01-aws-us-east-1
+          before-apply:
+            - set-environment:
+                cluster: sbx-i01-aws-us-east-1
+          after-apply:
+            - validate-service-account-roles:
+                cluster: sbx-i01-aws-us-east-1
+          requires:
+            - static code analysis
+          filters: *on-push-main
+
+      - deploy control plane extensions:
+          name: deploy sbx-i01-aws-us-east-1 extensions
+          context: *context
+          cluster: sbx-i01-aws-us-east-1
+          requires:
+            - apply sbx-i01-aws-us-east-1 service account roles
+          filters: *on-push-main
+
+  release prod-i01-aws-us-east-2 control plane extensions:
+    jobs:
+      - terraform/apply:
+          name: apply prod-i01-aws-us-east-2 service account roles
+          context: *context
+          workspace: prod-i01-aws-us-east-2
+          before-apply:
+            - set-environment:
+                cluster: prod-i01-aws-us-east-2
+          after-apply:
+            - validate-service-account-roles:
+                cluster: prod-i01-aws-us-east-2
+          filters: *on-tag-main
+
+      - deploy control plane extensions:
+          name: deploy prod-i01-aws-us-east-2 extensions
+          context: *context
+          cluster: prod-i01-aws-us-east-2
+          requires:
+            - apply prod-i01-aws-us-east-2 service account roles
+          filters: *on-tag-main
+
+      - do/gh-release:
+          name: generate release notes
+          context: *context
+          notes-from-file: release.md
+          include-commit-msg: true
+          before-release:
+            - op/env:
+                env-file: op.prod-i01-aws-us-east-2.env
+          after-release:
+            - do/slack-bot:
+                channel: platform-events
+                message: Release aws-control-plane-extensions
+                include-link: true
+                include-tag: true
+          requires:
+            - deploy prod-i01-aws-us-east-2 extensions
+          filters: *on-tag-main
+
+      - do/schedule-pipeline:
+          name: schedule nightly integration tests
+          context: *context
+          scheduled-pipeline-name: nightly control plane extensions integration tests
+          scheduled-pipeline-description: |
+            Automatically triggers nightly run of control plane extensions integration tests
+          hours-of-day: "[1]"
+          days-of-week: "[\"SUN\"]"
+          before-schedule:
+            - op/env:
+                env-file: op.prod-i01-aws-us-east-2.env
+          filters: *on-tag-main
+
+  run nightly integration tests:
+    when:
+        equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    jobs:
+      - integration tests:
+          name: nightly sbx-i01-aws-us-east-1 integration tests
+          context: *context
+          cluster: sbx-i01-aws-us-east-1
+      - integration tests:
+          name: nightly prod-i01-aws-us-east-2 integration tests
+          context: *context
+          cluster: prod-i01-aws-us-east-2

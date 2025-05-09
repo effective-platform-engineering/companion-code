@@ -1,0 +1,135 @@
+global:
+
+  commonLabels:
+    kubernetes.io/cluster-service: "true"
+    kubernetes.io/name: "cert-manager"
+
+crds:
+  enabled: true
+  keep: true
+
+replicaCount: 1
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+image:
+  pullPolicy: Always
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    cpu: 150m
+    memory: 150Mi
+
+nodeSelector:
+  nodegroup: management-arm-rkt-mng
+
+tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "management"
+    effect: "NoSchedule"
+
+webhook:
+  replicaCount: 1
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 150m
+      memory: 150Mi
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  nodeSelector:
+    nodegroup: management-arm-rkt-mng
+
+  tolerations:
+    - key: "dedicated"
+      operator: "Equal"
+      value: "management"
+      effect: "NoSchedule"
+
+  image:
+    pullPolicy: Always
+
+cainjector:
+  enabled: true
+
+  replicaCount: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 150m
+      memory: 150Mi
+
+  nodeSelector:
+    nodegroup: management-arm-rkt-mng
+
+  tolerations:
+    - key: "dedicated"
+      operator: "Equal"
+      value: "management"
+      effect: "NoSchedule"
+
+  image:
+    pullPolicy: Always
+
+
+acmesolver:
+  image:
+    pullPolicy: Always
+
+startupapicheck:
+  enabled: true
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 150m
+      memory: 150Mi
+
+  nodeSelector:
+    nodegroup: management-arm-rkt-mng
+
+  tolerations:
+    - key: "dedicated"
+      operator: "Equal"
+      value: "management"
+      effect: "NoSchedule"
+
+  image:
+    pullPolicy: Always

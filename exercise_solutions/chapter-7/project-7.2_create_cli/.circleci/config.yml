@@ -1,0 +1,185 @@
+---
+version: 2.1
+
+orbs:
+  do: twdps/pipeline-events@5.1.0
+  op: twdps/onepassword@3.0.0
+  provenance: twdps/image-provenance@0.1.2
+  win: circleci/windows@5.0.0
+
+globals:
+  - &context <my-team>
+  - &executor-image cimg/go:1.22.4
+
+on-push-main: &on-push-main
+  branches:
+    only: /main/
+  tags:
+    ignore: /.*/
+
+on-tag-main: &on-tag-release
+  branches:
+    ignore: /.*/
+  tags:
+    only:
+      - /^([0-9]+(\.[0-9]+)+)-rc.[0-9]+$/
+      - /^((([0-9]+)\.([0-9]+)\.([0-9]+))?)$/
+
+executors:
+  go-builder:
+    docker:
+      - image: *executor-image
+
+commands:
+
+  set-environment:
+    steps:
+      - op/install:
+          op-version: 2.29.0
+      - op/env
+      - op/tpl:
+          tpl-path: tpl
+          tpl-file: config.go
+          out-path: cmd
+      - op/write-to-file:
+          op-value: my-vault/svc-cosign-private-key/notesPlain
+          out-file: cosign.key
+      - op/write-to-file:
+          op-value: my-vault/svc-cosign-public-key/notesPlain
+          out-file: cosign.pub
+
+jobs:
+
+  static code analysis:
+    description: golang static code analysis
+    executor: go-builder
+    steps:
+      - checkout
+      - setup_remote_docker
+      - set-environment
+      - run:
+          name: golang lint
+          command: golangci-lint run ./...
+      - run:
+          name: secure practices scan
+          command: |
+            curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.18.2
+            gosec -exclude=G104 ./...
+      - run:
+          name: build test
+          command: |
+            go mod tidy
+            go build
+      - run:
+          name: cli build smoketest
+          command: |
+            set -exo pipefail
+            ./epectl version | grep "snapshot"
+
+  release:
+    description: publish release version
+    executor: go-builder
+    steps:
+      - checkout
+      - setup_remote_docker
+      - set-environment
+      - provenance/packages:
+          cosign-version: 2.2.4
+      - run:
+          name: goreleaser
+          command: |
+            curl -sL https://git.io/goreleaser | bash
+            mkdir release-assets && cp dist/*.tar.* release-assets && cp dist/*.zip release-assets
+      - run:
+          name: validate signature
+          command: cosign verify-blob -key cosign.pub -signature release-assets/epectl_Linux_amd64.tar.gz.sig release-assets/epectl_Linux_amd64.tar.gz
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/release-assets
+
+  smoke test linux-arm:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: arm.medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: smoketest Linux amd64 version
+          command: |
+            tar -xvzf release-assets/epectl_Linux_arm64.tar.gz
+            ./epectl version | grep ${CIRCLE_TAG}
+
+  smoke test linux-intel:
+    docker:
+      - image: cimg/base:2024.01
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: smoketest Linux amd64 version
+          command: |
+            tar -xvzf release-assets/epectl_Linux_amd64.tar.gz
+            ./epectl version | grep ${CIRCLE_TAG}
+
+  smoke test macos-m1:
+    macos:
+      xcode: "15.4.0"
+    resource_class: macos.m1.medium.gen1
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: smoketest MacOS M1 version
+          command: |
+            tar -xvzf release-assets/epectl_Darwin_arm64.tar.gz
+            ./epectl version | grep ${CIRCLE_TAG}
+
+  smoke test windows:
+    executor:
+      name: win/default
+      shell: bash.exe
+    steps:
+      - checkout
+      - attach_workspace:
+            at: ~/
+      - run:
+          name: smoke test windows version
+          command: |
+            unzip -u release-assets/epectl_Windows_amd64.zip
+            ./epectl version | grep ${CIRCLE_TAG}
+
+workflows:
+
+  development build and test:
+    jobs:
+    - static code analysis:
+        context: *context
+        filters: *on-push-main
+
+  release-version:
+    jobs:
+      - release:
+          context: *context
+          filters: *on-tag-release
+
+      - smoke test macos-m1:
+          requires:
+            - release
+          filters: *on-tag-release
+      - smoke test linux-intel:
+          requires:
+            - release
+          filters: *on-tag-release
+      - smoke test linux-arm:
+          requires:
+            - release
+          filters: *on-tag-release
+      - smoke test windows:
+          requires:
+            - release
+          filters: *on-tag-release

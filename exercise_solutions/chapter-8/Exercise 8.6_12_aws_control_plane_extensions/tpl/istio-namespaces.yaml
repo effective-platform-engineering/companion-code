@@ -1,0 +1,29 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: istio-system
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: default-mtls
+  labels:
+    istio-injection: enabled
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/enforce: baseline
+
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: default-mtls-ns-quota
+  namespace: default-mtls
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 2Gi
+    limits.cpu: "10"
+    limits.memory: 20Gi
