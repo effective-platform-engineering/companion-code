@@ -1,0 +1,22 @@
+{
+  "demo": [
+    "dev",
+    "qa",
+    "prod"
+  ],
+  "demo-publications": [
+    "dev",
+    "qa",
+    "prod"
+  ],
+  "demo-reviews": [
+    "dev",
+    "qa",
+    "prod"
+  ],
+  "platform": [
+    "dev",
+    "qa",
+    "prod"
+  ]
+}

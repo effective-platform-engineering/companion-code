@@ -1,0 +1,214 @@
+---
+version: 2.1
+
+orbs:
+  terraform: twdps/terraform@3.0.1
+  kube: twdps/kube-ops@1.1.2
+  op: twdps/onepassword@3.0.0
+  do: twdps/pipeline-events@5.0.1
+
+globals:
+  - &context <my-team>
+  - &executor-image twdps/circleci-infra-aws:alpine-2025.04
+
+on-push-main: &on-push-main
+  branches:
+    only: /main/
+  tags:
+    ignore: /.*/
+
+on-tag-main: &on-tag-main
+  branches:
+    ignore: /.*/
+  tags:
+    only: /.*/
+
+commands:
+
+  set-environment:
+    description: generate environment credentials and configuration from templates
+    parameters:
+      account:
+        type: string
+    steps:
+      - op/env:
+          env-file: op.<< parameters.account >>.env
+      - op/tpl:
+          tpl-path: environments
+          tpl-file: << parameters.account >>.auto.tfvars.json
+      - terraform/terraformrc
+      - do/bash-functions
+
+  service-account-integration-test:
+    description: generate environment credentials and configuration from templates
+    parameters:
+      account:
+        type: string
+    steps:
+      - run:
+          name: integration test nonprod account
+          command: bash scripts/service_account_integration_test.sh << parameters.account >>
+
+  gateway-integration-tests:
+    parameters:
+      cluster:
+        description: cluster and tf workspace name
+        type: string
+    steps:
+      - run:
+          name: run default gateway integration tests
+          command: bats test/default_gateway_support_status.bats
+
+  gateway-functional-tests:
+    parameters:
+      cluster:
+        description: cluster and tf workspace name
+        type: string
+    steps:
+      - run:
+          name: run gateway functional test
+          command: bash scripts/gateway_functional_test.sh << parameters.cluster >>
+
+jobs:
+
+  deploy default environment gateways:
+    docker:
+      - image: *executor-image
+    parameters:
+      cluster:
+        description: cluster name
+        type: string
+    steps:
+      - checkout
+      - set-environment:
+          account: << parameters.cluster >>
+      - kube/op-config:
+          op-value: my-vault/<< parameters.cluster >>/kubeconfig-base64
+      - run:
+          name: install external-dns
+          command: bash scripts/install_external_dns.sh << parameters.cluster >>
+      - run:
+          name: deploy cluster certificate issuer
+          command: bash scripts/deploy_certificate_issuer.sh << parameters.cluster >>
+      - run:
+          name: deploy cluster defautl gateways
+          command: bash scripts/deploy_gateways.sh << parameters.cluster >>
+      - gateway-integration-tests:
+           cluster: << parameters.cluster >>
+
+  deploy team namespaces:
+    docker:
+      - image: *executor-image
+    parameters:
+      cluster:
+        description: cluster name
+        type: string
+    steps:
+      - checkout
+      - set-environment:
+          account: << parameters.cluster >>
+      - kube/op-config:
+          op-value: my-vault/<< parameters.cluster >>/kubeconfig-base64
+      - run:
+          name: deploy team namespaces
+          command: bash scripts/deploy_namespaces.sh << parameters.cluster >> $DOCKERREGISTRYACCESS
+      - gateway-functional-tests:
+           cluster: << parameters.cluster >>
+
+workflows:
+  version: 2
+
+  sbx-i01-aws-us-east-1 simple ns configuration:
+    jobs:
+      - terraform/static-analysis:
+          name: static code analysis
+          context: *context
+          executor-image: *executor-image
+          workspace: sbx-i01-aws-us-east-1
+          tflint-scan: true
+          tflint-provider: aws
+          trivy-scan: true
+          before-static-analysis:
+            - op/env:
+                env-file: op.sbx-i01-aws-us-east-1.env
+          filters: *on-push-main
+
+      - terraform/apply:
+          name: sbx-i01-aws-us-east-1 service account release
+          context: *context
+          executor-image: *executor-image
+          workspace: sbx-i01-aws-us-east-1
+          before-apply:
+            - set-environment:
+                account: sbx-i01-aws-us-east-1
+          after-apply:
+            - service-account-integration-test:
+                account: sbx-i01-aws-us-east-1
+          requires:
+             - static code analysis
+          filters: *on-push-main
+
+      - deploy default environment gateways:
+          name: deploy sbx-i01-aws-us-east-1 environment gateways
+          context: *context
+          cluster: sbx-i01-aws-us-east-1
+          requires:
+            - sbx-i01-aws-us-east-1 service account release
+          filters: *on-push-main
+
+      - deploy team namespaces:
+          name: deploy sbx-i01-aws-us-east-1 team namespaces
+          context: *context
+          cluster: sbx-i01-aws-us-east-1
+          requires:
+            - deploy sbx-i01-aws-us-east-1 environment gateways
+          filters: *on-push-main
+
+  prod-i01-aws-us-east-2 simple ns configuration:
+    jobs:
+      - terraform/apply:
+          name: prod-i01-aws-us-east-2 service account release
+          context: *context
+          executor-image: *executor-image
+          workspace: prod-i01-aws-us-east-2
+          before-apply:
+            - set-environment:
+                account: prod-i01-aws-us-east-2
+          after-apply:
+            - service-account-integration-test:
+                account: prod-i01-aws-us-east-2
+          filters: *on-tag-main
+
+      - deploy default environment gateways:
+          name: deploy prod-i01-aws-us-east-2 environment gateways
+          context: *context
+          cluster: prod-i01-aws-us-east-2
+          requires:
+            - prod-i01-aws-us-east-2 service account release
+          filters: *on-tag-main
+
+      - deploy team namespaces:
+          name: deploy prod-i01-aws-us-east-2 team namespaces
+          context: *context
+          cluster: prod-i01-aws-us-east-2
+          requires:
+            - deploy prod-i01-aws-us-east-2 environment gateways
+          filters: *on-tag-main
+
+      - do/gh-release:
+          name: generate release notes
+          context: *context
+          notes-from-file: release.md
+          include-commit-msg: true
+          before-release:
+            - op/env:
+                env-file: op.prod-i01-aws-us-east-2.env
+          after-release:
+            - do/slack-bot:
+                channel: platform-events
+                message: Release platform-simple-teams-and-ns
+                include-link: true
+                include-tag: true
+          requires:
+            - deploy prod-i01-aws-us-east-2 team namespaces
+          filters: *on-tag-main

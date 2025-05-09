@@ -1,0 +1,122 @@
+image:
+  repository: registry.k8s.io/external-dns/external-dns
+  pullPolicy: Always
+
+serviceAccount:
+  create: true
+
+rbac:
+  create: true
+
+deploymentStrategy:
+  type: Recreate
+
+podSecurityContext:
+  runAsNonRoot: true
+  fsGroup: 65534
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  privileged: false
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 65532
+  capabilities:
+    drop: ["ALL"]
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 2
+  successThreshold: 1
+
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 1000m
+    memory: 1024Mi
+
+nodeSelector:
+  nodegroup: management-arm-rkt-mng
+
+tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "management"
+    effect: "NoSchedule"
+
+serviceMonitor:
+  enabled: false
+
+logLevel: info
+
+logFormat: json
+
+interval: 1m
+
+policy: sync
+sources:
+  - service
+  - ingress
+  - istio-gateway
+  - istio-virtualservice
+
+extraArgs:
+  - --aws-zone-type=public
+
+registry: txt
+
+txtOwnerId:
+txtPrefix:
+txtSuffix:
+excludeDomains: []
+
+provider:
+  name: aws
+  webhook:
+    image:
+      pullPolicy: Always
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: http-webhook
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 2
+      successThreshold: 1
+    readinessProbe:
+      httpGet:
+        path: /healthz
+        port: http-webhook
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 6
+      successThreshold: 1
+    serviceMonitor:
+      interval:
+      scheme:
+      tlsConfig: {}
+      bearerTokenFile:
+      scrapeTimeout:
+      metricRelabelings: []
+      relabelings: []
