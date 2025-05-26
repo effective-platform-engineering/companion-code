@@ -27,7 +27,7 @@ Also, think about how you will know your platform is being used and (hopefully) 
 For this example, we will use the Grafana stack (Prometheus, Loki, Tempo, Grafana), but there are a plethora of others with more being published over time.
 
 ### Install on a cluster
-The file ### can be run on a local (Linux-based) computer to install a Kubernetes cluster using Kind, and then deploy Grafana LGTM using the public docker image `grafana/otel-lgtm`.  Give it a try if needed, then take a look at some of the default dashboards published!
+The bash script [install_k8s_with_observability.sh](./install_k8s_with_observability.sh) can be run on a local (Linux-based) computer to install a Kubernetes cluster using Kind, and then deploy Grafana LGTM using the public docker image `grafana/otel-lgtm`.  Give it a try if needed, then take a look at some of the default dashboards published!
 
 ### Instrumentation
 While we have not yet instrumented applications, we should include support for Open Telemetry (OTEL) trace ingestion, as it will be very useful to all teams that adopt it. This will be supported by Grafana LGTM (including accepting Jaegar traces), and an agent can be configured to automatically publish an endpoint.
