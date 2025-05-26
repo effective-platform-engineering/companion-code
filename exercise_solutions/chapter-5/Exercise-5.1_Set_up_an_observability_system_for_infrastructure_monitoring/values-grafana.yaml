@@ -1,0 +1,85 @@
+# kind-values.yaml
+adminUser: admin
+adminPassword: Epetech
+
+grafana:
+  enabled: true
+  service:
+    type: NodePort
+    nodePort: 30080
+  adminPassword: Epetech
+  persistence:
+    enabled: false
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://prometheus-server.observability.svc.cluster.local
+          isDefault: true
+        - name: Loki
+          type: loki
+          access: proxy
+          url: http://lgtm-loki-gateway.observability.svc.cluster.local
+        - name: Tempo
+          type: tempo
+          access: proxy
+          url: http://lgtm-tempo-query-frontend.observability.svc.cluster.local
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+loki:
+  enabled: true
+  gateway:
+    enabled: true
+    service:
+      type: NodePort
+      nodePort: 30081
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+tempo:
+  enabled: true
+  tempoQuery:
+    enabled: true
+    service:
+      type: NodePort
+      nodePort: 30082
+  persistence:
+    enabled: false
+  tempo:
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /tmp/tempo
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+mimir:
+  enabled: false
+
+minio:
+  enabled: false
+
+gateway:
+  enabled: false
