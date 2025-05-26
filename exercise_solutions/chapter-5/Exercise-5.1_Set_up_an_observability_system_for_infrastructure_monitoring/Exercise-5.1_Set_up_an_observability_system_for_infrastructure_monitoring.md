@@ -1,4 +1,4 @@
-***Exercise 5.1: Set up an observability system for infrastructure monitoring***
+## Exercise 5.1: Set up an observability system for infrastructure monitoring
 
 In this exercise, you will start by selecting an observability stack in your organization. You will also need a system for collecting metrics, logs, and traces. 
 
