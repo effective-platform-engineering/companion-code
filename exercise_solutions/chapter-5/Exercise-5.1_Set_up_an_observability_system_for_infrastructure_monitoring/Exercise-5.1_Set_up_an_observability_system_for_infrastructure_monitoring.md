@@ -27,20 +27,19 @@ Also, think about how you will know your platform is being used and (hopefully) 
 For this example, we will use the Grafana stack (Prometheus, Loki, Tempo, Grafana), but there are a plethora of others with more being published over time.
 
 ### Install on a cluster
-The bash script [install_k8s_with_observability.sh](./install_k8s_with_observability.sh) can be run on a local (Linux-based) computer to install a Kubernetes cluster using Kind, and then deploy Grafana LGTM using the public docker image `grafana/otel-lgtm`.  Give it a try if needed, then take a look at some of the default dashboards published!
-
-### Instrumentation
-While we have not yet instrumented applications, we should include support for Open Telemetry (OTEL) trace ingestion, as it will be very useful to all teams that adopt it. This will be supported by Grafana LGTM (including accepting Jaegar traces), and an agent can be configured to automatically publish an endpoint.
+The bash script [install_k8s_with_observability.sh](./install_k8s_with_observability.sh) can be run on a local (Linux-based) computer to install a Kubernetes cluster using Kind, and then deploy Grafana LGT with Prometheus using the public docker image `grafana/otel-lgtm`. 
 
 ### Explore captured metrics
 Now without any extra configuration, this stack deploys with Prometheus capturing cluster metrics by default and now you can begin to explore them.  In fact, this is the experience your platdform customers should expect when deploying applications!
 
 #### Sample Prometheus Queries
-- Open the Prometheus UX at http://localhost:9090 and use the query bar to explore a few metrics
-    - Uptime of different cluster components can be seen with `time() - process_start_time_seconds`
-    - Uptime of cluster nodes can be queried with `node_time_seconds - node_boot_time_seconds`
+Open the Prometheus UX at http://localhost:9090 and use the query bar to explore a few metrics
+  - Uptime of different cluster components can be seen with `time() - process_start_time_seconds`
+  - Uptime of cluster nodes can be queried with `node_time_seconds - node_boot_time_seconds`
 
 ### Optional Trace Ingestion
+While we have not yet instrumented applications, we should include support for Open Telemetry (OTEL) trace ingestion, as it will be very useful to all teams that adopt it.
+
 If you look at the prometheus-values we set, notice the `extra_scrape_configs` settings.  This enables prometheus to scrape sone configs from a cluster deployed by Kind that ity would normally get by default in a cluster like EKS, namely `kube-apiserver`.  However, prometheus is set up that any pod deployed by your usage could automatically be scraped for metrics by adding the following annotation to the pod spec:
 ``` bash
 annotations:
