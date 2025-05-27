@@ -49,6 +49,3 @@ annotations:
 ```
 
 How can we do the same things for OTEL metrics?  For an open-source option, take a look at the Grafana Agent install to enable this kind of self-service!
-
-
-
