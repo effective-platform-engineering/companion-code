@@ -48,4 +48,4 @@ annotations:
   prometheus.io/port: "8080"
 ```
 
-How can we do the same things for OTEL metrics?  For an open-source option, take a look at the Grafana Agent install to enable this kind of self-service!
+How can we do the same things for OTEL metrics?  For an open-source option, take a look at the Grafana Agent install to enable this kind of self-service!  An example of how to do this on a local cluster created by Kind is in [install_grafana_agent.sh](./install_grafana_agent.sh)
