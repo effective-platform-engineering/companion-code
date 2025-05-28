@@ -1,0 +1,26 @@
+components:
+  frontend:
+    envOverrides:
+      - name: PUBLIC_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+        value: http://grafana-alloy.observability.svc.cluster.local:4318
+grafana:
+  enabled: false
+jaeger:
+  enabled: false
+opensearch:
+  enabled: false
+prometheus:
+  enabled: false
+opentelemetry-collector:
+  config:
+    exporters:
+      otlphttp/example:
+        endpoint: http://grafana-alloy.observability.svc.cluster.local:4318
+      otlphttp/prometheus:
+        endpoint: http://prometheus-server.observability.svc.cluster.local/api/v1/otlp/v1/metrics
+
+    service:
+      pipelines:
+        traces:
+          exporters: [spanmetrics, otlphttp/example, otlphttp/prometheus]
+

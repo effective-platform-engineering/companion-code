@@ -79,7 +79,7 @@ loki.source.kubernetes "pod_logs" {
 loki.process "pod_logs" {
   stage.static_labels {
       values = {
-        cluster = "ex5-1",
+        cluster = "exercise-5",
       }
   }
   forward_to = [loki.write.default.receiver]
@@ -99,7 +99,7 @@ loki.process "cluster_events" {
   forward_to = [loki.write.default.receiver]
   stage.static_labels {
     values = {
-      cluster = "ex5-1",
+      cluster = "exercise-5",
     }
   }
   stage.labels {
