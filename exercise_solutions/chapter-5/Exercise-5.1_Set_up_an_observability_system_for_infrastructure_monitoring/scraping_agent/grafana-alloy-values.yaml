@@ -1,0 +1,66 @@
+alloy:
+  configMap:
+    create: false
+    name: alloy-config
+    key: config.alloy
+    
+  extraPorts:
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+      protocol: TCP
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+      protocol: TCP 
+
+service:
+  enabled: true
+  type: ClusterIP
+  ports:
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+
+flows:
+  - name: gtm-flow
+    spec:
+      sources:
+        logs:
+          discovery.kubernetes:
+            role: pod
+        traces:
+          otelcol.receiver.otlp:
+            protocols:
+              grpc: {}
+              http: {}
+      transforms:
+        add_labels:
+          operators:
+            - type: add_attributes
+              attributes:
+                job: kubernetes
+
+      destinations:
+        loki:
+          logs.instance:
+            name: default
+            clients:
+              - url: http://lgtm-loki-gateway.observability.svc.cluster.local/loki/api/v1/push
+        tempo:
+          otelcol.exporter.otlp:
+            endpoint: http://lgtm-tempo-distributor.observability.svc.cluster.local:4317
+            tls:
+              insecure: true
+
+      routes:
+        - input: logs
+          receivers: [logs]
+          processors: [add_labels]
+          exporters: [loki]
+        - input: traces
+          receivers: [traces]
+          exporters: [tempo]

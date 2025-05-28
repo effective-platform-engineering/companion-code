@@ -26,7 +26,7 @@ grafana:
         - name: Tempo
           type: tempo
           access: proxy
-          url: http://lgtm-tempo-query-frontend.observability.svc.cluster.local
+          url: http://lgtm-tempo-query-frontend.observability.svc.cluster.local:3100
   resources:
     requests:
       cpu: 100m
@@ -54,11 +54,26 @@ loki:
 
 tempo:
   enabled: true
+  traces:
+    otlp:
+      grpc:
+        enabled: true
+      http:
+        enabled: true
+    zipkin:
+      enabled: false
+    jaeger:
+      thriftHttp:
+        enabled: true
+    opencensus:
+      enabled: false
   tempoQuery:
     enabled: true
     service:
       type: NodePort
       nodePort: 30082
+  ingester:
+    replicas: 2
   persistence:
     enabled: false
   tempo:
