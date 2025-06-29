@@ -51,28 +51,28 @@ PE Tech is building an Engineering Platform on AWS. However, with the pending me
 
 * Ensure platform APIs are implemented in a cloud-agnostic way by isolating cloud-specific features:
 
+```java
 layeredArchitecture()
-
-  .layer("CloudSpecific").definedBy("..cloudspecific..")
-
-  .layer("Service").definedBy("..service..")
-
-  .assertLayer("Service").mayOnlyBeAccessedByLayer("Handler")
-
-  .assertLayer("CloudSpecific").mayOnlyBeAccessedByLayer("Service")
+    .layer("CloudSpecific").definedBy("..cloudspecific..")
+    .layer("Service").definedBy("..service..")
+    .assertLayer("Service").mayOnlyBeAccessedByLayer("Handler")
+    .assertLayer("CloudSpecific").mayOnlyBeAccessedByLayer("Service")
+```
 
 **Test-Driven Development:**
 
 * Fail if a new service layer is checked in without associated tests:
 
+```java
 serviceLayerWithoutTests := // Logic to find services without tests
-
 assert serviceLayerWithoutTests.empty()
+```
 
 **Monitoring and Observability:**
 
 * Fail if a new API feature lacks monitoring:
 
+```java
 newAPIFeaturesWithoutMonitors := // Logic to find features without monitors
-
 assert newAPIFeaturesWithoutMonitors.empty()
+```
