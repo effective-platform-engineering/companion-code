@@ -9,88 +9,93 @@ Using all the elements from the code coverage example (data, input, and policy),
 ### **Solution**
 Assuming INPUT includes:  
 
+```json
 {
-  "kind": "AdmissionReview",
-  "apiVersion": "admission.k8s.io/v1",
-  "request": {
-    "kind": {
-      "group": "apps",
-      "version": "v1",
-      "kind": "Deployment"
-    },
-    "name": "my-app",
-    "namespace": "my-team-dev",
-    "operation": "CREATE",
-    "object": {
-      "apiVersion": "apps/v1",
-      "kind": "Deployment",
-      "metadata": {
+    "kind": "AdmissionReview",
+    "apiVersion": "admission.k8s.io/v1",
+    "request": {
+        "kind": {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment"
+        },
         "name": "my-app",
         "namespace": "my-team-dev",
-        "source-sha": "bc183a62",
-        "labels": {
-          "app": "my-app"
-        }
-      },
-      "spec": {
-        "replicas": 3,
-        "selector": {
-          "matchLabels": {
-            "app": "my-app"
-          }
-        },
-        "template": {
-          "metadata": {
-            "labels": {
-              "app": "my-app"
-            }
-          },
-          "spec": {
-            "containers": [
-              {
+        "operation": "CREATE",
+        "object": {
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "metadata": {
                 "name": "my-app",
-                "image": "ghcr.io/epetech/my-app:v1.8.3",
-                "resources": {
-                  "limits": {
-                    "cpu": "100m",
-                    "memory": "256Mi"
-                  },
-                  "requests": {
-                    "cpu": "100m",
-                    "memory": "128Mi"
-                  }
+                "namespace": "my-team-dev",
+                "source-sha": "bc183a62",
+                "labels": {
+                    "app": "my-app"
                 }
-              }
-            ]
-          }
-        },
-        "strategy": {
-          "type": "RollingUpdate",
-          "rollingUpdate": {
-            "maxUnavailable": "25%",
-            "maxSurge": "25%"
-          }
+            },
+            "spec": {
+                "replicas": 3,
+                "selector": {
+                    "matchLabels": {
+                        "app": "my-app"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "labels": {
+                            "app": "my-app"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "my-app",
+                                "image": "ghcr.io/epetech/my-app:v1.8.3",
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "100m",
+                                        "memory": "256Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "100m",
+                                        "memory": "128Mi"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "strategy": {
+                    "type": "RollingUpdate",
+                    "rollingUpdate": {
+                        "maxUnavailable": "25%",
+                        "maxSurge": "25%"
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }
+```
 
 Assume DATA response from our code coverage source includes:  
 
+```json
 {
-  “code_quality_attributes”: {
-    “bc183a62”: { #A
-       “issues”: “4”,
-       “coverage”: 98,
-       “complexity”: 5,
-       “lines_of_code”: 3769
+    "code_quality_attributes": {
+        "bc183a62": {
+            "issues": "4",
+            "coverage": 98,
+            "complexity": 5,
+            "lines_of_code": 3769
+        }
     }
-  }
 }
+```
 
 Then the additional policies could be written as:  
 
+```rego
 package test
 
 default deny := false
@@ -101,9 +106,10 @@ deny if container_resource_limits_not_defined
 deny if container_resource_requests_not_defined
 
 code_coverage_lt_required if {
-	print("sha to check", input.request.object.metadata.sha)
-	print("results returned from data source", data.code_quality_attributes[input.request.object.metadata.sha].coverage)
-	data.code_quality_attributes[input.request.object.metadata.sha].coverage < 80
+	sha = input.request.object.metadata["source-sha"]
+	print("sha to check", sha)
+	print("results returned from data source", data.code_quality_attributes[sha].coverage)
+	data.code_quality_attributes[sha].coverage < 80
 }
 
 multiple_replicas_not_defined if {
@@ -113,12 +119,13 @@ multiple_replicas_not_defined if {
 
 container_resource_limits_not_defined if {
 	some container in input.request.object.spec.template.spec.containers
-    print("container resource definition", container.resources)
+	print("container resource definition", container.resources)
 	not container.resources.limits
 }
 
 container_resource_requests_not_defined if {
 	some container in input.request.object.spec.template.spec.containers
-    print("container resource definition", container.resources)
+	print("container resource definition", container.resources)
 	not container.resources.requests
 }
+```
