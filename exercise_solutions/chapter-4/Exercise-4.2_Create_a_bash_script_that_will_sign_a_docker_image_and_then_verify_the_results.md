@@ -1,6 +1,6 @@
 ## ***Exercise 4.2: Create a bash script that will sign a docker image and then verify the results***
 
-Now that we’ve talked about how to write policies, use them with compliance at the point of change, and the importance of supply chain security, apply what you’ve learned and write a zero trust policy that enforces our requirements and can be reused as a Compliance controller. To do this, you’ll need to use a tool called Cosign. Cosign is a project managed by Sigstore, a governing body within the OpenSSF (Open Source Security Foundation). 
+Now that we've talked about how to write policies, use them with compliance at the point of change, and the importance of supply chain security, apply what you've learned and write a zero trust policy that enforces our requirements and can be reused as a Compliance controller. To do this, you'll need to use a tool called Cosign. Cosign is a project managed by Sigstore, a governing body within the OpenSSF (Open Source Security Foundation). 
 
 Also, consider how you might write a policy that enforces our image security concerns, from code signing to image signing.
 
@@ -8,6 +8,7 @@ Note: You can learn about Software Supply Chain security in great detail by lear
 
 ### **Solution**
 
+```bash
 #!/usr/bin/env bash
 set -eo pipefail
 
@@ -51,3 +52,4 @@ docker image inspect --format='{{index .RepoDigests 0}}' "${registry}/${image}" 
 cosign sign --key cosign.key $(cat manifestid) -y
 # verify signature
 cosign verify --key cosign.pub "${registry}/${image}"
+```
