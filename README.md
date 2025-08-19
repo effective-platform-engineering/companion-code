@@ -4,7 +4,7 @@ This repository contains companion materials for the book, including runnable ex
 
 ## Quick links
 - 📄 **Appendix A – Combined Solutions (Chapters 2–8)**  
-  [Download the PDF](./Appendix-A_Combined-Solutions_Ch2-8.pdf)
+  [Download the PDF](./Appx-A_chankramath_effective_platform_engineering.pdf)
 - 🧩 **Exercise solutions:** [`exercise_solutions/`](./exercise_solutions/)
 - 🏗️ **Template platform repository:** [`template_platform_repository/`](./template_platform_repository/)
 
