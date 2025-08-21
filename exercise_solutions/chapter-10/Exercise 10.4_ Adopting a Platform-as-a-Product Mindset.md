@@ -3,8 +3,6 @@
 ## Objective
 Develop a product vision and roadmap for your internal platform, incorporating user-centric design principles.
 
----
-
 ## Recommended Steps
 
 1. **Conduct User Research**
@@ -32,7 +30,6 @@ Develop a product vision and roadmap for your internal platform, incorporating u
    - Present the prototype to stakeholders and users.  
    - Document feedback, action items, and planned improvements.
 
----
 
 ## Expected Deliverables
 - Platform **Vision and Mission Statements** in documented format.  
@@ -41,7 +38,7 @@ Develop a product vision and roadmap for your internal platform, incorporating u
 - Interactive coded prototype of crucial platform features.  
 - Feedback Summary with action items and planned improvements.  
 
----
+
 
 ## Solution: Epetech.online
 
@@ -74,7 +71,7 @@ Develop a product vision and roadmap for your internal platform, incorporating u
 - Collect qualitative (interviews, feedback sessions) and quantitative (survey results) data.  
 - Incorporate insights into roadmap iterations.  
 
----
+
 
 ### Intended Outcome
 By adopting a **platform-as-a-product mindset**, Epetech.online will:  
