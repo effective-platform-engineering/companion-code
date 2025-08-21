@@ -73,13 +73,6 @@ The expected deliverables will be the following.
 
 **Intended Outcome**: A demonstrable improvement in delivery performance, backed by data, that reinforces cultural adoption.
 
-
-
-###  Transition Diagram
-
-
----
-
 ### Expected Deliverables
 - **Process Flow Diagrams** of current and future SDLC.  
 - **Automation Scripts** for CI/CD and metrics collection.  
@@ -87,8 +80,6 @@ The expected deliverables will be the following.
 - **Data Analysis Reports** with before/after visualizations.  
 - **Feedback Data** from surveys or forms.  
 - **Implementation Progress Report** summarizing outcomes and lessons learned.  
-
----
 
 ### Intended Outcome
 By embedding DevOps practices, **Epetech.online** will:  
