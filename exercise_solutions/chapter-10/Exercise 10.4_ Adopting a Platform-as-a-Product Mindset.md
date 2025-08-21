@@ -38,8 +38,6 @@ Develop a product vision and roadmap for your internal platform, incorporating u
 - Interactive coded prototype of crucial platform features.  
 - Feedback Summary with action items and planned improvements.  
 
-
-
 ## Solution: Epetech.online
 
 ### Vision & Mission
@@ -48,7 +46,7 @@ Develop a product vision and roadmap for your internal platform, incorporating u
 
 ### Roadmap Blueprint
 - **Near Term (0–3 months)**:  
-  - Launch survey app and conduct initial research.  
+  - Launch survey app and conduct initial research.  We are not providing an example of the sample js script or the R script. We leave it to the readers on how they want to handle that part.
   - Deliver onboarding improvements and standardized golden paths.  
 - **Mid Term (3–6 months)**:  
   - Implement enhanced observability and self-service environment provisioning.  
@@ -70,8 +68,6 @@ Develop a product vision and roadmap for your internal platform, incorporating u
 - Share prototype with advisory groups and developer forums.  
 - Collect qualitative (interviews, feedback sessions) and quantitative (survey results) data.  
 - Incorporate insights into roadmap iterations.  
-
-
 
 ### Intended Outcome
 By adopting a **platform-as-a-product mindset**, Epetech.online will:  
