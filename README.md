@@ -68,6 +68,23 @@ This repository contains companion materials for the book, including runnable ex
 [Exercise 8.3 – 8.5](exercise_solutions/chapter-8/8.3-5_aws_control_plane_services) AWS Control Plane Services  
 [Exercise 8.6 – 8.12](exercise_solutions/chapter-8/8.6-12_aws_control_plane_extensions) AWS Control Plane Extensions  
 
+## Chapter 10
+
+# Chapter 10 – Exercise Solutions
+
+This folder contains solutions approaches and walkthroughs for the exercises in **Chapter 10** of the book.  
+
+[Exercise 10.1](Exercise%2010.1_%20Identify%20the%20leading%20engineering%20platform%20metrics%20for%20your%20organization.md) – Guidance on selecting and applying key metrics that measure platform effectiveness and adoption.  
+[Exercise 10.2](Exercise%2010.2_%20Create%20an%20approach%20for%20feedback%20mechanism%20at%20VitalSigns.online.md) – A framework for establishing feedback loops between developers, platform teams, and stakeholders.  
+[Exercise 10.3] (Exercise%2010.3_%20Create%20a%20platform%20product%20roadmap%20blueprint%20for%20VitalSigns.online.md) – Steps to define and visualize a roadmap that aligns platform evolution with business goals.  
+[Exercise 10.4](Exercise%2010.4_%20Adopting%20a%20Platform-as-a-Product%20Mindset.md) – Explores how to treat the platform as a product with clear ownership, lifecycle, and value delivery.  
+[Exercise 10.5](Exercise%2010.5_%20Implementing%20Team%20Topologies%20in%20Your%20Organization.md) – Practical application of Team Topologies principles to improve collaboration and reduce cognitive load.  
+[Exercise 10.6](Exercise%2010.6_%20Planning%20a%20Cultural%20Shift%20Towards%20DevOps%20and%20Collaboration.md) – Guidance for driving cultural change to support DevOps adoption and collaborative platform practices.  
+[Exercise 10.7] (Exercise%2010.7_%20Integrating%20an%20Intelligent%20Assistant%20Into%20Your%20Platform.md) – A hands-on look at embedding AI assistants into the platform to enhance developer productivity.  
+[Exercise 10.8] (Exercise%2010.8_%20Comparing%20and%20Integrating%20IDPs%20and%20Developer%20Portals.md) – Analysis of differences between IDPs and developer portals, with strategies for integration.  
+
+
+
 ---
 
 ## Contributing
