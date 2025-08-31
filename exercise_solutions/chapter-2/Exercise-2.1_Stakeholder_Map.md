@@ -13,7 +13,7 @@ Describe how the capability owned by the stakeholder could either be
 
 Example Stakeholder map and alignment issues:
 
-[stakeholder map](Exercise-1.2.png)
+![stakeholder map](./Exercise-2.1.png)
 
 Role: Director \- Office of Program Management
 
